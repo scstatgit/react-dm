@@ -7,6 +7,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
+import { CircularProgress } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -17,16 +18,21 @@ const styles = theme => ({
   },
   table: {
     minWidth: 1080
+  },
+  progress: {
+    margin: theme.spacing.unit * 2
   }
 });
 
 class App extends Component {
 
   state = {
-    customers: ""
+    customers: "",
+    completed: 0
   }
 
   componentDidMount() {
+    this.timer = setInterval(this.progress, 20);
     this.callApi()
       .then(res => this.setState({customers: res}))
       .catch(err => console.log(err));
@@ -36,6 +42,11 @@ class App extends Component {
     const response = await fetch('/api/customers');
     const body = await response.json();
     return body;
+  }
+
+  progress = () => {
+    const { completed } = this.state;
+    this.setState({ completed: completed >= 100 ? 0 : completed + 1});
   }
 
   render() {
@@ -56,47 +67,18 @@ class App extends Component {
           <TableBody>
             {this.state.customers ? this.state.customers.map(c => {
               return ( <Customer key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />);
-            }) : ""}
+            }) : 
+            <TableRow>
+              <TableCell colSpan="6" align="center">
+                <CircularProgress className={classes.progress} variant="indeterminate" value={this.state.completed}/>
+              </TableCell>
+            </TableRow>
+            }
           </TableBody>
         </Table>
       </Paper>
     );
   }
 }
-
-
-// class App extends Component {
-//   render() {
-//     return (
-//       <div>
-//       <Customer 
-//         id={customers[0].id}
-//         image={customers[0].image}
-//         name={customers[0].name}
-//         birthday={customers[0].birthday}
-//         gender={customers[0].gender}
-//         job={customers[0].job}
-//       />
-//       <Customer 
-//         id={customers[1].id}
-//         image={customers[1].image}
-//         name={customers[1].name}
-//         birthday={customers[1].birthday}
-//         gender={customers[1].gender}
-//         job={customers[1].job}
-//       />
-//       <Customer 
-//         id={customers[2].id}
-//         image={customers[2].image}
-//         name={customers[2].name}
-//         birthday={customers[2].birthday}
-//         gender={customers[2].gender}
-//         job={customers[2].job}
-//       />
-//       </div>
-//     );
-//   }
-// }
-
 
 export default withStyles(styles)(App);
