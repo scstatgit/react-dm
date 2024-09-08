@@ -6,6 +6,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
+import { withStyles } from '@mui/styles';
+
+const styles = theme => ({
+    hidden: {
+        display: 'none'
+    }
+});
 
 class CustomerAdd extends React.Component {
 
@@ -62,6 +69,7 @@ class CustomerAdd extends React.Component {
         formData.append('birthday', this.state.birthday);
         formData.append('gender', this.state.gender);
         formData.append('job', this.state.job);
+        formData.append('fileName', this.state.fileName);
         const config = {
             headers: {
                 'content-type': 'multipart/form-data' // 파일(여기선 이미지)도 같이 전송하는 경우 multipart로 설정해야함
@@ -98,7 +106,7 @@ class CustomerAdd extends React.Component {
                 <Dialog open={this.state.open} onClose={this.handleClose}>
                     <DialogTitle>고객 추가</DialogTitle>
                     <DialogContent>
-                        <input className={{display: 'none'}} accept="image/*" id="raised-button-file" type="file" file={this.state.file} value={this.state.fileName} onChange={this.handleFileChange}/><br/>
+                        <input className={classes.hidden} accept="image/*" id="raised-button-file" type="file" file={this.state.file} value={this.state.fileName} onChange={this.handleFileChange}/><br/>
                         <label htmlFor="raised-button-file">
                             <Button variant="contained" color="primary" component="span" name="file">
                                 {this.state.fileName === "" ? "프로필 이미지 선택" : this.state.fileName}
@@ -120,4 +128,4 @@ class CustomerAdd extends React.Component {
     }
 }
 
-export default CustomerAdd;
+export default withStyles(styles)(CustomerAdd);

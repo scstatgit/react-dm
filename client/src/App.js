@@ -2,26 +2,39 @@ import React, { Component } from 'react';
 import Customer from './components/Customer';
 import CustomerAdd from './components/CustomerAdd';
 import './App.css';
-import { Paper, Table, TableHead, TableBody, TableRow, TableCell, CircularProgress, AppBar, Toolbar, IconButton, Typography, InputBase } from '@mui/material';
-import { ThemeProvider, createTheme, alpha } from '@mui/material/styles';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import { TableHead, TableBody, TableRow, TableCell, CircularProgress, AppBar, Toolbar, IconButton, Typography, InputBase } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { withStyles } from '@mui/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
-
-const theme = createTheme();
 
 const styles = theme => ({
   root: {
     width: '100%'
   },
+  menu: {
+    marginTop: 15,
+    marginBottom: 15,
+    display: 'flex',
+    justifyContent: 'center'
+  },
   grow: {
     flexGrow: 1,
+  },
+  tableHead: {
+    fontSize: '1.0rem'
+  },
+  paper: {
+    margin: 18
   },
   menuButton: {
     marginLeft: -12,
     marginRight: 20,
   },
   title: {
+    flexGrow: 1,
     display: 'none',
     [theme.breakpoints.up('sm')]: {
       display: 'block',
@@ -42,7 +55,7 @@ const styles = theme => ({
     },
   },
   searchIcon: {
-    padding: theme.spacing(9),
+    padding: theme.spacing(0, 2),
     height: '100%',
     position: 'absolute',
     pointerEvents: 'none',
@@ -52,16 +65,19 @@ const styles = theme => ({
   },
   inputRoot: {
     color: 'inherit',
-    width: '100%',
+    display: 'flex'
   },
   inputInput: {
-    padding: theme.spacing(1, 1, 1, 10),
-    transition: theme.transitions.create('width'),
+    color: 'inherit',
     width: '100%',
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
     [theme.breakpoints.up('sm')]: {
-      width: 120,
+      width: '12ch',
       '&:focus': {
-        width: 200,
+        width: '30ch',
       },
     },
   }
@@ -78,12 +94,6 @@ class App extends Component {
     }
   }
 
-  handleValueChange = (e) =>{
-    let nextState ={};
-    nextState[e.target.name] = e.target.value;
-    this.setState(nextState);
-  } 
-    
   stateRefresh = () => {
     this.setState({
       customers: '',
@@ -118,13 +128,28 @@ class App extends Component {
     this.setState({ completed: completed >= 100 ? 0 : completed + 1});
   }
 
+  handleValueChange = (e) =>{
+    let nextState ={};
+    nextState[e.target.name] = e.target.value;
+    this.setState(nextState);
+  }
+
   render() {
+    const filteredComponents = (data) => {
+      data = data.filter((c) => {
+        return c.name.indexOf(this.state.searchKeyword) > -1;
+      });
+      return data.map((c) => {
+        return <Customer stateRefresh={this.stateRefresh} key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />
+      });
+    }
     const { classes } = this.props;
+    const cellList = ["번호", "프로필 이미지", "이름", "생년월일", "성별", "직업", "설정"];
     return (
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
-            <IconButton className={classes.menuButton} color="inherit" aria-label="open drawer">
+            <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="open drawer">
               <MenuIcon />
             </IconButton>
             <Typography className={classes.title} variant="h6" color="inherit" noWrap>
@@ -135,27 +160,35 @@ class App extends Component {
               <div className={classes.searchIcon}>
                 <SearchIcon />
               </div>
-              <InputBase placeholder="검색하기" classes={{ root: classes.inputRoot, input: classes.inputInput }}/>
+              <InputBase 
+                placeholder="검색하기"
+                classes={{
+                  root: classes.inputRoot, 
+                  input: classes.inputInput
+                }}
+                inputProps={{ 'aria-label': 'search' }}
+                name="searchKeyword"
+                value={this.state.searchKeyword}
+                onChange={this.handleValueChange}
+              />
             </div>
           </Toolbar>
         </AppBar>
-        <Paper>
+        <div className={classes.menu}>
+          <CustomerAdd stateRefresh={this.stateRefresh}/>
+        </div>
+        <Paper className={classes.paper}>
           <Table className={classes.table}>
             <TableHead>
               <TableRow>
-                <TableCell>번호</TableCell>
-                <TableCell>이미지</TableCell>
-                <TableCell>이름</TableCell>
-                <TableCell>생년월일</TableCell>
-                <TableCell>성별</TableCell>
-                <TableCell>직업</TableCell>
-                <TableCell>설정</TableCell>
+                {cellList.map(c => {
+                  return <TableCell key={c} className={classes.tableHead}>{c}</TableCell>
+                })}
               </TableRow>
             </TableHead>
             <TableBody>
-              {this.state.customers ? this.state.customers.map(c => {
-                return ( <Customer stateRefresh={this.stateRefresh} key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />);
-              }) : 
+              {this.state.customers ? 
+                filteredComponents(this.state.customers) :
               <TableRow>
                 <TableCell colSpan="6" align="center">
                   <CircularProgress className={classes.progress} variant="indeterminate" value={this.state.completed}/>
@@ -165,18 +198,9 @@ class App extends Component {
             </TableBody>
           </Table>
         </Paper>
-        <CustomerAdd stateRefresh={this.stateRefresh}/>
       </div>
     );
   }
 }
 
-const AppWithStyles = withStyles(styles)(App);
-
-const AppWithTheme = (props) => (
-  <ThemeProvider theme={theme}>
-    <AppWithStyles {...props} />
-  </ThemeProvider>
-);
-
-export default AppWithTheme;
+export default withStyles(styles)(App);
